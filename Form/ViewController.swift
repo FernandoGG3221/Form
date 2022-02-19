@@ -141,7 +141,14 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func loadAnimation(name:String){
         
         animationView = .init(name: name)
-        animationView?.frame = imgEmail.bounds
+        
+        //print(animationView!.frame)
+        animationView!.frame.size = imgEmail.bounds.size
+        //animationView?.bounds = imgEmail.frame
+        
+        print(animationView!.frame.size)
+        print(imgEmail.frame.size)
+        
         
         name == "complete" ? (animationView?.loopMode = .playOnce) : (animationView?.loopMode = .loop)
         
