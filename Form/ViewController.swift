@@ -27,6 +27,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        edtName.text = "Fernando"
+        edtLastName1.text = "Gonzalez"
+        edtLastName2.text = "Gonzalez"
+        edtEmail.text = "fer_gg@outlook.es"
+        edtPhone.text = "2222222222"
+        
         configurations()
         loadAnimation(name: "email")
     }
@@ -146,7 +153,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         animationView!.frame.size = imgEmail.bounds.size
         //animationView?.bounds = imgEmail.frame
         
-        print(animationView!.frame.size)
+        print(animationView?.frame.size)
         print(imgEmail.frame.size)
         
         
@@ -165,11 +172,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func removeAnimation(){
         animationView?.stop()
         animationView?.removeFromSuperview()
+        
+        Timer.scheduledTimer(withTimeInterval: 2.1, repeats: false, block: {_ in
+            self.closeAnimation()
+        })
+        
+        
     }
     
     @objc func closeAnim(){
         animationView?.stop()
         animationView?.removeFromSuperview()
+        loadAnimation(name: "email")
     }
     
     func closeAnimation(){
@@ -177,7 +191,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         _ = Timer.scheduledTimer(timeInterval: 3.1, target: self, selector: selector, userInfo: nil, repeats: false)
         
-        loadAnimation(name: "email")
+        
     }
     //MARK: - Actions
     @IBAction func edtEm(_ sender: UITextField) {
