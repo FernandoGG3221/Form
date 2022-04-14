@@ -21,7 +21,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var btnSend: UIButton!
     
     //MARK: - Properties
-    weak var animationView: AnimationView?
+    var animationView: AnimationView?
     
     //MARK: - Cicle
     override func viewDidLoad() {
@@ -64,17 +64,24 @@ class ViewController: UIViewController, UITextFieldDelegate {
         edtPhone.keyboardType = .phonePad
         edtPhone.placeholder = "Diez números de teléfono"
         
-        generateGesture()
+        moveKeyboard()
     }
     
-    func generateGesture(){
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyBoard(_:)))
-        self.view.addGestureRecognizer(tapGesture)
+    func moveKeyboard(){
         
         //Observers
-        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)), name: UIResponder.keyboardDidHideNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(self, selector: #selector(changeKeyboard(notification:)),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
     }
     
     @objc func changeKeyboard(notification: Notification){
@@ -82,14 +89,12 @@ class ViewController: UIViewController, UITextFieldDelegate {
         let dimension = infoKeyboard!.cgRectValue
         let heigth = dimension.height
         let name = notification.name.rawValue
-        
+            
         let originY = view.frame.origin.y
-        
+        let heigthKeyB = heigth / 5
         switch name{
         case "UIKeyboardWillHideNotification": originY
         case "UIKeyboardWillShowNotification":
-            
-            let heigthKeyB = heigth / 5
             
             if edtLastName2.isFirstResponder{
                 view.frame.origin.y = (-1 * heigthKeyB) * 1.4
@@ -100,23 +105,26 @@ class ViewController: UIViewController, UITextFieldDelegate {
             if edtPhone.isFirstResponder{
                 view.frame.origin.y = (-1 * heigthKeyB) * 4
             }
-        default: view.frame.origin.y = originY / 4
+            
+        default: view.frame.origin.y = originY / heigthKeyB
+            print("Default")
         }
     }
     
-    @objc func hideKeyBoard(_ sender: UITapGestureRecognizer){
-        edtName.resignFirstResponder()
-        edtLastName1.resignFirstResponder()
-        edtLastName2.resignFirstResponder()
-        edtEmail.resignFirstResponder()
-        edtPhone.resignFirstResponder()
-    }
     
     deinit{
+        print("quitando el centro de notificaciones")
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
     }
+    
+    
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+    }
+    
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         switch textField{
@@ -148,13 +156,19 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func loadAnimation(name:String){
         
         animationView = .init(name: name)
+        animationView?.autoresizesSubviews = true
         
-        //print(animationView!.frame)
-        animationView!.frame.size = imgEmail.bounds.size
+        print(animationView!.frame)
+        animationView?.contentMode = .scaleAspectFit
+        let size = imgEmail.frame.maxY
+        animationView!.frame = CGRect(x: 0, y: 0, width: size, height: size)
+        //animationView!.frame = imgEmail.frame.maxX
         //animationView?.bounds = imgEmail.frame
         
-        print(animationView?.frame.size)
-        print(imgEmail.frame.size)
+        print(animationView!.frame)
+        print(imgEmail.bounds)
+        //print(imgEmail.frame.maxX)
+        print(imgEmail.frame.maxY)
         
         
         name == "complete" ? (animationView?.loopMode = .playOnce) : (animationView?.loopMode = .loop)
@@ -173,7 +187,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         animationView?.stop()
         animationView?.removeFromSuperview()
         
-        Timer.scheduledTimer(withTimeInterval: 2.1, repeats: false, block: {_ in
+        Timer.scheduledTimer(withTimeInterval: 3.1, repeats: false, block: {_ in
             self.closeAnimation()
         })
         
@@ -181,15 +195,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     @objc func closeAnim(){
+        
         animationView?.stop()
         animationView?.removeFromSuperview()
+        animationView = nil
         loadAnimation(name: "email")
     }
     
     func closeAnimation(){
-        let selector = #selector(closeAnim)
+        //let selector = #selector(closeAnim)
         
-        _ = Timer.scheduledTimer(timeInterval: 3.1, target: self, selector: selector, userInfo: nil, repeats: false)
+        closeAnim()
+        //_ = Timer.scheduledTimer(timeInterval: 3.1, target: self, selector: selector, userInfo: nil,  repeats: false)
         
         
     }
@@ -198,12 +215,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         let text = sender.text!
         
-        if text.isEmpty{
-            print("El campo está vacio")
-        }else{
+        if !text.isEmpty{
             if validateEmail(email: sender.text!){
                 print("El email tiene formato correcto")
-                
             }else{
                 showAlert(title: "¡ADVERTENCIA!", message: "Formato de correo electrónico incorrecto")
                 edtEmail.text = ""
@@ -224,10 +238,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 edtPhone.text = ""
             }
         case 10:
-            if validateNumber(number: text){
-                print("Contiene numeros")
-                //Almacenar los datos en la bd
-            }else{
+            if !validateNumber(number: text){
                 showAlert(title: "¡ADVERTENCIA!", message: "Sólo números")
                 edtPhone.text = ""
             }
@@ -250,7 +261,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     func showAnimationSend(){
         removeAnimation()
-        clearEDT()
+        //clearEDT()
         loadAnimation(name: "complete")
     }
     
